@@ -6,6 +6,9 @@ const PROJECTILE_SCRIPT = preload("res://Projectile.gd")
 
 @export var arena_half_size := 14.0
 @export var run_length := 300.0
+const LEVEL_DURATION := 60.0
+const LEVEL_COUNT := 5
+var current_level := 1
 
 var player
 var camera: Camera3D
@@ -40,13 +43,18 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if game_ended:
 		return
+	var previous_level := current_level
 	elapsed += delta
+	current_level = mini(int(elapsed / LEVEL_DURATION) + 1, LEVEL_COUNT)
+	if current_level != previous_level:
+		hint_label.text = "LEVEL %d - ENEMIES INCOMING" % current_level
+		_ui_flash = 2.0
 	wave_timer -= delta
 	pack_timer -= delta
 	if wave_timer <= 0.0:
-		var wave_size := mini(2 + int(elapsed / 45.0), 5)
+		var wave_size := mini(2 + current_level, 6)
 		_spawn_wave(wave_size)
-		wave_timer = maxf(14.0, 21.0 - elapsed / 30.0)
+		wave_timer = maxf(6.0, 12.0 - float(current_level - 1) * 1.5)
 	if pack_timer <= 0.0:
 		if _pickups.size() < 2:
 			_spawn_health_pack()
@@ -264,7 +272,7 @@ func _update_hud() -> void:
 	health_fill.size.x = 240.0 * ratio
 	health_fill.color = Color(0.18, 0.9, 0.54).lerp(Color(1.0, 0.15, 0.22), 1.0 - ratio)
 	var remaining := maxi(0, int(ceil(run_length - elapsed)))
-	hud_stats.text = "HP %d%%\nTIME %02d:%02d\nHITS %d  UPGRADES %d\nDASH %s  KOs %d" % [roundi(ratio * 100.0), int(remaining / 60), remaining % 60, player.hits_taken, player.upgrades_earned, "READY" if player._dash_cooldown <= 0.0 else "CHARGING", defeated_count]
+	hud_stats.text = "LEVEL %d/%d\nHP %d%%  TIME %02d:%02d\nHITS %d  UPGRADES %d\nDASH %s  KOs %d" % [current_level, LEVEL_COUNT, roundi(ratio * 100.0), int(remaining / 60), remaining % 60, player.hits_taken, player.upgrades_earned, "READY" if player._dash_cooldown <= 0.0 else "CHARGING", defeated_count]
 
 func _update_pickups(delta: float) -> void:
 	for pack in _pickups.duplicate():

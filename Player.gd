@@ -7,7 +7,7 @@ signal defeated
 signal dash_started
 
 @export var move_speed := 8.0
-@export var dash_speed := 19.0
+@export var dash_speed := 28.5
 @export var max_health := 100.0
 var health := 100.0
 var hits_taken := 0
